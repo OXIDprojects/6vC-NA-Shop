@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<OX>
+    <OXMENU id="NAVIGATION_ESHOPADMIN">
+        <MAINMENU id="v6cmods">
+            <SUBMENU id="v6c_nashop" cl="v6c_nashop" list="v6c_nashoplist">
+                <TAB id="v6c_nashop_main" cl="v6c_nashopmain" />
+			</SUBMENU>
+        </MAINMENU>
+    </OXMENU>
+</OX>

@@ -1,0 +1,47 @@
+[{*-- 
+  * SUMMARY OF V6C MODS:
+  *		Extra line break after email
+  *		Salutation optional
+  *		Address layout changed to NA standards
+  *		Add support to omit email
+  *		Add support to use order data
+  *		Add support for plain-text, including removal of all unnecessary white-space.
+--*}]
+[{if $v6c_bNoEmail}][{assign var="v6c_bShowEmail" value=false}][{else}][{assign var="v6c_bShowEmail" value=true}][{/if}]
+[{if $v6c_oOrder}]
+	[{assign var="v6c_sEmail" value=$v6c_oOrder->oxorder__oxbillemail->value}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sCompany" value=$v6c_oOrder->oxorder__oxbillcompany->getRawValue()}][{else}][{assign var="v6c_sCompany" value=$v6c_oOrder->oxorder__oxbillcompany->value}][{/if}]
+	[{assign var="v6c_sSal" value=$v6c_oOrder->oxorder__oxbillsal->value}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sFirst" value=$v6c_oOrder->oxorder__oxbillfname->getRawValue()}][{else}][{assign var="v6c_sFirst" value=$v6c_oOrder->oxorder__oxbillfname->value}][{/if}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sLast" value=$v6c_oOrder->oxorder__oxbilllname->getRawValue()}][{else}][{assign var="v6c_sLast" value=$v6c_oOrder->oxorder__oxbilllname->value}][{/if}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sStreet" value=$v6c_oOrder->oxorder__oxbillstreet->getRawValue()}][{else}][{assign var="v6c_sStreet" value=$v6c_oOrder->oxorder__oxbillstreet->value}][{/if}]
+	[{assign var="v6c_sStNr" value=$v6c_oOrder->oxorder__oxbillstreetnr->value}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sAddInfo" value=$v6c_oOrder->oxorder__oxbilladdinfo->getRawValue()}][{else}][{assign var="v6c_sAddInfo" value=$v6c_oOrder->oxorder__oxbilladdinfo->value}][{/if}]
+	[{assign var="v6c_sState" value=$v6c_oOrder->oxorder__oxbillstateid->value}]
+	[{assign var="v6c_sZip" value=$v6c_oOrder->oxorder__oxbillzip->value}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sCity" value=$v6c_oOrder->oxorder__oxbillcity->getRawValue()}][{else}][{assign var="v6c_sCity" value=$v6c_oOrder->oxorder__oxbillcity->value}][{/if}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sCountry" value=$v6c_oOrder->oxorder__oxbillcountry->getRawValue()}][{else}][{assign var="v6c_sCountry" value=$v6c_oOrder->oxorder__oxbillcountry->value}][{/if}]
+	[{assign var="v6c_sPhone" value=$v6c_oOrder->oxorder__oxbillfon->value}]
+[{else}]
+	[{assign var="v6c_sEmail" value=$oxcmp_user->oxuser__oxusername->value}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sCompany" value=$oxcmp_user->oxuser__oxcompany->getRawValue()}][{else}][{assign var="v6c_sCompany" value=$oxcmp_user->oxuser__oxcompany->value}][{/if}]
+	[{assign var="v6c_sSal" value=$oxcmp_user->oxuser__oxsal->value}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sFirst" value=$oxcmp_user->oxuser__oxfname->getRawValue()}][{else}][{assign var="v6c_sFirst" value=$oxcmp_user->oxuser__oxfname->value}][{/if}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sLast" value=$oxcmp_user->oxuser__oxlname->getRawValue()}][{else}][{assign var="v6c_sLast" value=$oxcmp_user->oxuser__oxlname->value}][{/if}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sStreet" value=$oxcmp_user->oxuser__oxstreet->getRawValue()}][{else}][{assign var="v6c_sStreet" value=$oxcmp_user->oxuser__oxstreet->value}][{/if}]
+	[{assign var="v6c_sStNr" value=$oxcmp_user->oxuser__oxstreetnr->value}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sAddInfo" value=$oxcmp_user->oxuser__oxaddinfo->getRawValue()}][{else}][{assign var="v6c_sAddInfo" value=$oxcmp_user->oxuser__oxaddinfo->value}][{/if}]
+	[{assign var="v6c_sStateId" value=$oxcmp_user->oxuser__oxstateid->value}]
+	[{assign var="v6c_sZip" value=$oxcmp_user->oxuser__oxzip->value}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sCity" value=$oxcmp_user->oxuser__oxcity->getRawValue()}][{else}][{assign var="v6c_sCity" value=$oxcmp_user->oxuser__oxcity->value}][{/if}]
+	[{if $v6c_bPlainTxt}][{assign var="v6c_sCountry" value=$oxcmp_user->oxuser__oxcountry->getRawValue()}][{else}][{assign var="v6c_sCountry" value=$oxcmp_user->oxuser__oxcountry->value}][{/if}]
+	[{assign var="v6c_sPhone" value=$oxcmp_user->oxuser__oxfon->value}]
+[{/if}]
+[{if $v6c_sEmail && $v6c_bShowEmail}][{ oxmultilang ident="PAGE_CHECKOUT_ORDER_EMAIL" }] [{ $v6c_sEmail }][{if !$v6c_bPlainTxt}]<br><br>[{/if}][{/if}]
+[{if $v6c_sCompany }][{ $v6c_sCompany }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
+[{if $v6c_sSal || $v6c_sFirst || $v6c_sLast}][{if $oViewConf->v6cIsSalutation() }][{ $v6c_sSal|oxmultilangsal}] [{/if}][{ $v6c_sFirst }] [{ $v6c_sLast }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
+[{if $v6c_sStreet || $v6c_sStNr}][{ $v6c_sStreet }] [{ $v6c_sStNr }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
+[{if $v6c_sAddInfo }][{ $v6c_sAddInfo }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
+[{if $v6c_sStateId || $v6c_sZip || $v6c_sCity}][{ $v6c_sCity }], [{$v6c_sStateId}] [{ $v6c_sZip }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
+[{if $v6c_sCountry }][{ $v6c_sCountry }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
+[{if $v6c_sPhone }][{if !$v6c_bPlainTxt}]<br>[{/if}][{if $v6c_bUseOrderInfo}][{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_PHONE" }][{else}][{ oxmultilang ident="PAGE_CHECKOUT_ORDER_PHONE" }][{/if}] [{ $v6c_sPhone }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
