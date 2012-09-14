@@ -3,6 +3,9 @@ INFORMATION
 -------------------------------------------------------------------------------------------------
 
 - Unless otherwise noted, all files last updated using oxid_esales_CE 4.5.11
+- License requires a modest credit to original developer in the form of a link-back (see LICENSE file)
+- Update feature a little buggy, be sure to check for invalid entries in the modules field after an update (Master Settings>Core Settings>System>Modules)
+- Have questions AFTER reading this?  Go here: http://forum.oxid-esales.com/showthread.php?t=16197
 - v6c_basic theme based off of oxid_esales_CE 4.4.5 (not publicly available)
 
 
