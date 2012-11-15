@@ -48,29 +48,39 @@ class v6c_naRssFeed extends v6c_naRssFeed_parent
             $oActCur = $this->getConfig()->getActShopCurrencyObject();
             $sPrice = '';
             if ( $oPrice = $oArticle->getPrice() ) {
-            	// BEGIN MOD
+                // BEGIN MOD
                 $sPrice =  " " . $oArticle->getPriceFromPrefix().$oLang->formatCurrency( $oPrice->getBruttoPrice(), $oActCur );
                 // END MOD
             }
             $oItem->title                   = strip_tags($oArticle->oxarticles__oxtitle->value . $sPrice);
-            $oItem->guid     = $oItem->link = $myUtilsUrl->prepareUrlForNoSession($oArticle->getLink());
+            $oItem->guid                    = $oItem->link = $myUtilsUrl->prepareUrlForNoSession($oArticle->getLink());
             $oItem->isGuidPermalink         = true;
-            //$oItem->description             = $oArticle->getArticleLongDesc()->value; //oxarticles__oxshortdesc->value;
+            // $oItem->description             = $oArticle->getLongDescription()->value; //oxarticles__oxshortdesc->value;
+            //#4038: Smarty not parsed in RSS, although smarty parsing activated for longdescriptions
             if ( oxConfig::getInstance()->getConfigParam( 'bl_perfParseLongDescinSmarty' ) ) {
                 $oItem->description         = $oArticle->getLongDesc();
             } else {
-                $oItem->description         = $oArticle->getArticleLongDesc()->value;//$oArticle->getLongDescription()->value;
+                $oItem->description         = $oArticle->getLongDescription()->value;
             }
 
             if (trim(str_replace('&nbsp;', '', (strip_tags($oItem->description)))) == '') {
-                $oItem->description             = $oArticle->oxarticles__oxshortdesc->value;
+                $oItem->description         = $oArticle->oxarticles__oxshortdesc->value;
             }
 
             $oItem->description = trim($oItem->description);
-            if ($sIcon = $oArticle->getIconUrl()) {
-                $oItem->description = "<img src='$sIcon' border=0 align='left' hspace=5>".$oItem->description;
+            if ( $sThumb = $oArticle->getThumbnailUrl() ) {
+                $oItem->description = "<img src='$sThumb' border=0 align='left' hspace=5>".$oItem->description;
             }
             $oItem->description = $oStr->htmlspecialchars( $oItem->description );
+
+            if ( $oArticle->oxarticles__oxtimestamp->value ) {
+                list($date, $time) = explode(' ', $oArticle->oxarticles__oxtimestamp->value);
+                $date              = explode('-', $date);
+                $time              = explode(':', $time);
+                $oItem->date = date( 'D, d M Y H:i:s O', mktime($time[0], $time[1], $time[2], $date[1], $date[2], $date[0]) );
+            } else {
+                $oItem->date = date( 'D, d M Y H:i:s O', time() );
+            }
 
             $aItems[] = $oItem;
         }

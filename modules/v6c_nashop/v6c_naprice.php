@@ -295,19 +295,21 @@ class v6c_naPrice extends v6c_naPrice_parent
             // check for multi-tax calc
             if (isset($this->_aTax)) $this->_v6cCalcMultiTaxes();
             // else do original calc
-            else $this->_dBrutto = self::netto2Brutto($this->_dNetto, $this->_dVat);
+            else {
+                $this->_dBrutto = self::netto2Brutto($this->_dNetto, $this->_dVat);
+                $this->_dBrutto = oxUtils::getInstance()->fRound($this->_dBrutto);
+            }
         // Adding zero value check for faster perf
         } elseif ( $this->_blNetPriceMode && $this->_dNetto == 0) {
             $this->_dBrutto = doubleval(0);
         // Original calc
         } elseif ($this->_dBrutto != 0) {
+            $this->_dBrutto = oxUtils::getInstance()->fRound($this->_dBrutto);
             $this->_dNetto  = self::brutto2Netto($this->_dBrutto, $this->_dVat);
         // Added zero value case
         } else {
             $this->_dNetto = doubleval(0);
         }
-        // Add zero check, else do as original code
-        if ($this->_dBrutto != 0) $this->_dBrutto = oxUtils::getInstance()->fRound($this->_dBrutto);
     }
 
 	/////////////////////// EXTENSIONS ////////////////////////////

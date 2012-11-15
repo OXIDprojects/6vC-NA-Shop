@@ -1,9 +1,6 @@
 [{*-- 
-  * SUMMARY OF V6C MODS:
+  * SUMMARY OF V6C_NA MODS:
   *		Remove all occurences of currency sign: $currency->sign
-  *		Added support to hide single payment option (MechantLink). 
-  *		Added support to show all delivery costs w/i selection menu (CourierWs).
-  *		Added support to show content associated with shipping method (CourierWs).
 --*}]
 
 [{capture append="oxidBlock_content"}]
@@ -29,9 +26,7 @@
                             [{block name="act_shipping"}]
                                 <select name="sShipSet" onChange="JavaScript:document.forms.shipping.submit();">
                                     [{foreach key=sShipID from=$oView->getAllSets() item=oShippingSet name=ShipSetSelect}]
-                                        <option value="[{$sShipID}]" [{if $oShippingSet->blSelected}]SELECTED[{if $oViewConf->v6cIsMdlInst('courierws')}][{assign var="oSelShipSet" value=$oShippingSet }][{/if}][{/if}]>
-                                        	[{ $oShippingSet->oxdeliveryset__oxtitle->value }][{if $oViewConf->v6cIsMdlInst('courierws')}] - [{ $oViewConf->v6cFormatCurrency($oShippingSet->v6cGetCost()) }][{/if}]
-                                        </option>
+                                        <option value="[{$sShipID}]" [{if $oShippingSet->blSelected}]SELECTED[{/if}]>[{ $oShippingSet->oxdeliveryset__oxtitle->value }]</option>
                                     [{/foreach}]
                                 </select>
                                 <noscript>
@@ -40,18 +35,14 @@
                             [{/block}]
                         </li>
                     </ul>
-                    [{if $oxcmp_basket->getDeliveryCosts() && !$oViewConf->v6cIsMdlInst('courierws') }]
+                    [{if $oxcmp_basket->getDeliveryCosts() }]
                         <div id="shipSetCost">
                             <b>[{ oxmultilang ident="PAGE_CHECKOUT_PAYMENT_CHARGE" }] [{ $oxcmp_basket->getFDeliveryCosts() }]</b>
                         </div>
                     [{/if}]
                     <div class="lineBlock"></div>
                 </form>
-		        [{if $oViewConf->v6cIsMdlInst('courierws') && $oSelShipSet->oxdeliveryset__v6ccmsldid->value }]
-					<br><br>
-					<div class="left">[{ oxcontent ident=$oSelShipSet->oxdeliveryset__v6ccmsldid->value }]</div>
 		        [{/if}]                
-            [{/if}]
         [{/block}]
 
         [{block name="checkout_payment_errors"}]
@@ -91,7 +82,7 @@
                     <input type="hidden" name="fnc" value="validatepayment">
                 </div>
 
-                [{if $oView->getPaymentList() && !( count($oView->getPaymentList()) == 1 && $oViewConf->v6cHideSinglePay() ) }]
+                [{if $oView->getPaymentList()}]
                     <h3 id="paymentHeader" class="blockHead">[{ oxmultilang ident="PAGE_CHECKOUT_PAYMENT_PAYMENT" }]</h3>
                     [{ assign var="inptcounter" value="-1"}]
                     [{foreach key=sPaymentID from=$oView->getPaymentList() item=paymentmethod name=PaymentSelect}]
@@ -108,11 +99,7 @@
                             [{/if}]
                         [{/block}]
                     [{/foreach}]              
-	            [{else}]
-	              <input type="hidden" name="paymentid" value="[{ $oView->getCheckedPaymentId() }]">
-	            [{/if}]
 
-            	[{if $oView->getPaymentList()}]                    
                     [{* TRUSTED SHOPS BEGIN *}]
                     [{include file="page/checkout/inc/trustedshops.tpl"}]
                     [{* TRUSTED SHOPS END *}]
@@ -120,7 +107,7 @@
                     [{block name="checkout_payment_nextstep"}]
                         [{if $oView->isLowOrderPrice()}]
                             <div class="lineBox clear">
-                            <div><b>[{ oxmultilang ident="PAGE_CHECKOUT_PAYMENT_MINORDERPRICE" }] [{ $oView->getMinOrderPrice() }]</b></div>
+                            <div><b>[{ oxmultilang ident="PAGE_CHECKOUT_PAYMENT_MINORDERPRICE" }] [{ $oView->getMinOrderPrice() }] [{ $currency->sign }]</b></div>
                             </div>
                         [{else}]
                             <div class="lineBox clear">

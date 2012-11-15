@@ -22,27 +22,16 @@
  */
 
     /** @name database information */
-        $this->dbHost = 'localhost'; // database host name
-        $this->dbName = 'oxid_demo'; // database name
-        $this->dbUser = 'root'; // database user name
-        $this->dbPwd = 'unggoy'; // database user password
+        $this->dbHost = '<dbHost_ce>'; // database host name
+        $this->dbName = '<dbName_ce>'; // database name
+        $this->dbUser = '<dbUser_ce>'; // database user name
+        $this->dbPwd  = '<dbPwd_ce>'; // database user password
         $this->dbType = 'mysql';
-        //$this->sShopURL = 'http://127.0.0.1/demo'; // eShop base url, required
-        $this->sShopURL = 'http://localhost/demo'; // eShop base url, required
+        $this->sShopURL     = '<sShopURL_ce>'; // eShop base url, required
         $this->sSSLShopURL  = null;            // eShop SSL url, optional
         $this->sAdminSSLURL = null;            // eShop Admin SSL url, optional
-        $this->sShopDir = 'D:/www/myserver.dev/public_html/demo';
-        $this->sCompileDir = 'D:/www/myserver.dev/public_html/demo/tmp';
-
-    // Template theme name, a directory in out/ folder containing all needed resources
-    $this->sTheme = 'basic';
-
-    // Custom  theme, a directory in out/ folder containing only modified template files
-    $this->sCustomTheme = 'v6c';
-
-    // Uncoment only for former (pre version 4) template compatibility
-    // $this->blFormerTplSupport = true;
-    // $this->blFixedWidthLayout = true;
+        $this->sShopDir     = '<sShopDir_ce>';
+        $this->sCompileDir  = '<sCompileDir_ce>';
 
     // UTF-8 mode in shop 0 - off, 1 - on
     $this->iUtfMode = 0;
@@ -68,7 +57,8 @@
     //  5 = Delivery Cost calculation info
     //  6 = SMTP Debug Messages
     //  7 = oxDbDebug SQL parser
-    $this->iDebug = 1;
+    //  8 = display smarty template names (requires /tmp cleanup)
+    $this->iDebug = 0;
 
     // Log all modifications performed in Admin
     $this->blLogChangesInAdmin = false;
@@ -104,12 +94,15 @@
                         'spider',
                         'fireball',
                         'robot',
-                        'spider',
-                        'robot',
                         'slurp',
                         'fast',
                         'altavista',
                         'teoma',
+                        'msnbot',
+                        'bingbot',
+                        'yandex',
+                        'gigabot',
+                        'scrubby'
                         );
 
     // Deactivate Static URL's for these Robots
@@ -117,10 +110,6 @@
 
     // IP addresses for which session/cookie id match and user agent change checks are off
     $this->aTrustedIPs = array();
-
-    // disable using and loading the gmp extension for the OpenId library
-    // as using the dl() function causes problems with suhosin.
-    define('Auth_OpenID_BUGGY_GMP', true);
 
     /**
      * Works only if basket reservations feature is enabled in admin.
@@ -162,6 +151,42 @@
 
     // Trusted Shops Ratings test service wsdl
     $this->sTsServiceTestWsdl = "https://qa.trustedshops.de/ts/services/TsRating?wsdl";
+
+    /**
+    * should template blocks be highlighted in frontend ?
+    * this is mainly intended for module writers in non productive environment
+    */
+    $this->blDebugTemplateBlocks = false;
+
+    /**
+     * should requests, coming via stdurl and not redirected to seo url be logged to seologs db table?
+     * note: only active if in productive mode, as the eShop in non productive more will always log such urls
+     */
+    $this->blSeoLogging = false;
+
+    /**
+     * To override oxubase::_aUserComponentNames use this array option:
+     * array keys are component(class) names and array values defines if component is cacheable (true/false)
+     * e.g. array("user_class" => false);
+     */
+    $this->aUserComponentNames = null;
+
+
+
+    /**
+     * Default database conection character set
+     */
+    $this->sDefaultDatabaseConnection = '';
+
+    /**
+     * Additional multi language tables
+     */
+    $this->aMultiLangTables = null;
+
+    /**
+     * Instructs shop that price update is perfomed by cron (time based job sheduler)
+     */
+    $this->blUseCron = false;
 
     $this->aRegionTax = array(  'AB' => array('GST' => 5), 		// GST
                                 'BC' => array('HST' => 12), 	// HST
