@@ -1,7 +1,7 @@
-[{*-- 
-  * SUMMARY OF V6C MODS:
+[{*--
+  * SUMMARY OF V6C_NA MODS:
   *		Remove all occurences of currency sign: $currency->sign
-  *		Remove all occurences of asterisk (*) after prices
+  *		Remove all occurences of asterisk (*) after prices (NOTE: may not have been necessary in this case, asterisk may have been for a note other than about taxes?)
 --*}]
 
 [{block name="widget_product_listitem_grid"}]
@@ -18,19 +18,21 @@
     [{capture name=product_price}]
         [{block name="widget_product_listitem_grid_price"}]
             [{oxhasrights ident="SHOWARTICLEPRICE"}]
-                [{if $product->getFTPrice() > $product->getFPrice()}]
+                [{assign var=tprice value=$product->getTPrice()}]
+                [{assign var=price  value=$product->getPrice()}]
+                [{if $tprice && $tprice->getBruttoPrice() > $price->getBruttoPrice()}]
                 <span class="priceOld">
                     [{ oxmultilang ident="WIDGET_PRODUCT_PRODUCT_REDUCEDFROM" }] <del>[{ $product->getFTPrice()}]</del>
                 </span>
                 [{/if}]
                 [{block name="widget_product_listitem_grid_price_value"}]
                     [{if $product->getFPrice()}]
-                        <strong><span itemprop="price">[{ $product->getFPrice() }]</span> <meta itemprop="priceCurrency" content="[{ $currency->name}]">[{if !($product->hasMdVariants() || ($oViewConf->showSelectListsInList() && $product->getSelections(1)) || $product->getVariantList())}][{/if}]</strong>
+                        <strong><span>[{ $product->getFPrice() }]</span></strong>
                     [{/if}]
                 [{/block}]
                 [{if $product->getPricePerUnit()}]
                     <span id="productPricePerUnit_[{$testid}]" class="pricePerUnit">
-                        [{$product->oxarticles__oxunitquantity->value}] [{$product->oxarticles__oxunitname->value}] | [{$product->getPricePerUnit()}]/[{$product->oxarticles__oxunitname->value}]
+                        [{$product->oxarticles__oxunitquantity->value}] [{$product->getUnitName()}] | [{$product->getPricePerUnit()}]/[{$product->getUnitName()}]
                     </span>
                 [{elseif $product->oxarticles__oxweight->value  }]
                     <span id="productPricePerUnit_[{$testid}]" class="pricePerUnit">
@@ -41,15 +43,14 @@
             [{/oxhasrights}]
         [{/block}]
     [{/capture}]
-    <meta itemprop='productID' content='sku:[{ $product->oxarticles__oxartnum->value }]'>
-    <a id="[{$testid}]" itemprop="url" href="[{$_productLink}]" class="titleBlock title fn" title="[{ $product->oxarticles__oxtitle->value}]">
-        <span itemprop="name">[{ $product->oxarticles__oxtitle->value }]</span>
+    <a id="[{$testid}]" href="[{$_productLink}]" class="titleBlock title fn" title="[{ $product->oxarticles__oxtitle->value}] [{$product->oxarticles__oxvarselect->value}]">
+        <span>[{ $product->oxarticles__oxtitle->value }] [{$product->oxarticles__oxvarselect->value}]</span>
         <div class="gridPicture">
-            <img itemprop="image" src="[{$product->getThumbnailUrl()}]" alt="[{ $product->oxarticles__oxtitle->value }]">
+            <img src="[{$product->getThumbnailUrl()}]" alt="[{ $product->oxarticles__oxtitle->value }] [{$product->oxarticles__oxvarselect->value}]">
         </div>
     </a>
     [{block name="widget_product_listitem_grid_tobasket"}]
-        <div class="priceBlock" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+        <div class="priceBlock">
             [{oxhasrights ident="TOBASKET"}]
                 [{$smarty.capture.product_price}]
                 [{if !$blShowToBasket }]
