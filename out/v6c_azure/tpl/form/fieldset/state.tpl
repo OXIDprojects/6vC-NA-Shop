@@ -1,5 +1,5 @@
 [{*--
-  * SUMMARY OF V6C MODS:
+  * SUMMARY OF V6C_NA MODS:
   *		Add state abbreviation to drop-down text.
 --*}]
 

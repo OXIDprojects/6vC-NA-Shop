@@ -1,5 +1,5 @@
 [{*-- 
-  * SUMMARY OF V6C MODS:
+  * SUMMARY OF V6C_NA MODS:
   *		Remove all occurences of currency sign: $currency->sign
 --*}]
 

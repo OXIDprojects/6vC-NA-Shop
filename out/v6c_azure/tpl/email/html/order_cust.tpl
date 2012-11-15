@@ -1,17 +1,13 @@
 [{*--
-  * SUMMARY OF V6C MODS:
+  * SUMMARY OF V6C_NA MODS:
   *		Remove all occurences of currency sign: $currency->sign
   *		Repeat mods done to basketcontents.tpl for order page price summary with the following differences:
   *			- Leave greeting card after article list
   *			- Adjust borders here since they are not handled by css
-  *			- Fix issue with use of 'modvoucher' not resolving to anything (obsolete maybe?).  Using actual table names instead.
-  *			- Corrected misuse of getFVoucherDiscountValue in condition requiring unformatted value.
+  *			- [M1] Corrected misuse of getFVoucherDiscountValue in condition requiring unformatted value.
   *			- Remove hardcoded colons after some cost labels.
-  *		Replace local address layout with address widgets.
-  *		BUG #0003351 (FIX in 4.6.0_beta3): Correction to column header (quantity and unit price reversed)
+  *		[M2] Replace local address layout with address widgets.
   *		Move user VAT/Tax ID to after address info
-  *		BUG #0003351 (FIX in 4.6.0_beta3): Fix erroneous reuse of EMAIL_ORDER_CUST_HTML_SHIPPINGCARRIER for payment info.
-  *		Make reviews optional.
   *		Added support for SellServices modules:
   *			- Hide all shipping content if SellService module is installed
   *			- Add note about service fees not being totalled with basket
@@ -20,11 +16,14 @@
 
 [{ assign var="shop"      value=$oEmailView->getShop() }]
 [{ assign var="oViewConf" value=$oEmailView->getViewConfig() }]
+[{ assign var="oConf"     value=$oViewConf->getConfig() }]
 [{ assign var="currency"  value=$oEmailView->getCurrency() }]
 [{ assign var="user"      value=$oEmailView->getUser() }]
 [{ assign var="oDelSet"   value=$order->getDelSet() }]
 [{ assign var="basket"    value=$order->getBasket() }]
 [{ assign var="payment"   value=$order->getPayment() }]
+[{ assign var="sOrderId"   value=$order->getId() }]
+[{ assign var="oOrderFileList"   value=$oEmailView->getOrderFileList($sOrderId) }]
 
 
 [{include file="email/html/header.tpl" title=$shop->oxshops__oxordersubject->value}]
@@ -59,7 +58,7 @@
             <td align="right" style="padding: 5px; border-bottom: 4px solid #ddd;">
               <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0; padding: 0; color: #555;"><b>[{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_TOTAL" }]</b></p>
             </td>
-            [{if $oViewConf->v6cIsReviews()}]
+            [{if $blShowReviewLink}]
 	            <td style="padding: 5px; border-bottom: 4px solid #ddd;">
 	              <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0; padding: 0; color: #555;"><b>[{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_PRODUCTREVIEW" }]</b></p>
 	            </td>
@@ -74,7 +73,7 @@
 
                 <tr valign="top">
                     <td style="padding: 5px; border-bottom: 4px solid #ddd;">
-                        <img src="[{$basketproduct->getThumbnailUrl() }]" border="0" hspace="0" vspace="0" alt="[{ $basketproduct->oxarticles__oxtitle->value|strip_tags }]" align="texttop">
+                        <img src="[{$basketproduct->getThumbnailUrl(false)}]" border="0" hspace="0" vspace="0" alt="[{$basketitem->getTitle()|strip_tags}]" align="texttop">
                         [{if $oViewConf->getShowGiftWrapping() }]
                             [{assign var="oWrapping" value=$basketitem->getWrapping() }]
                             <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0; padding: 10px 0;">
@@ -89,7 +88,7 @@
                     </td>
                     <td style="padding: 5px; border-bottom: 4px solid #ddd;">
                         <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0; padding: 10px 0;">
-                            <b>[{ $basketproduct->oxarticles__oxtitle->value }][{ if $basketproduct->oxarticles__oxvarselect->value}], [{ $basketproduct->oxarticles__oxvarselect->value}][{/if}]</b>
+                            <b>[{$basketitem->getTitle()}]</b>
                             [{ if $basketitem->getChosenSelList() }]
                                 <ul style="padding: 0 10px; margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px;">
                                     [{foreach from=$basketitem->getChosenSelList() item=oList}]
@@ -117,13 +116,8 @@
                     </td>
                     <td style="padding: 5px; border-bottom: 4px solid #ddd;" align="right">
                       <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
-                        <b>[{$basketitem->getAmount()}]</b>
-                      </p>
-                    </td>
-                    <td style="padding: 5px; border-bottom: 4px solid #ddd;" align="right">
-                        <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
                             <b>[{if $basketitem->getFUnitPrice() }][{ $basketitem->getFUnitPrice() }][{else}]-[{/if}]</b>
-                        </p>
+                      </p>
 
                         [{if $basketitem->aDiscounts}]
                             <p>
@@ -141,6 +135,11 @@
                             </p>
                         [{/if}]
                     </td>
+                    <td style="padding: 5px; border-bottom: 4px solid #ddd;" align="right">
+                      <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
+                        <b>[{$basketitem->getAmount()}]</b>
+                      </p>
+                    </td>
                     [{*<td style="padding: 5px; border-bottom: 4px solid #ddd;" align="right">
                         <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
                             [{$basketitem->getVatPercent() }]%
@@ -151,9 +150,9 @@
                             <b>[{if $basketitem->getFTotalPrice()}][{ $basketitem->getFTotalPrice() }][{else}]-[{/if}]</b>
                         </p>
                     </td>
-                    [{if $oViewConf->v6cIsReviews()}]
+                    [{if $blShowReviewLink}]
 	                    <td style="padding: 5px; border-bottom: 4px solid #ddd;">
-	                        <a href="[{ $oViewConf->getBaseDir() }]index.php?shp=[{$shop->oxshops__oxid->value}]&amp;anid=[{ $basketproduct->oxarticles__oxid->value }]&amp;cl=review&amp;reviewuserhash=[{$user->getReviewUserHash($user->getId())}]" style="font-family: Arial, Helvetica, sans-serif; font-size: 12px;" target="_blank">[{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_REVIEW" }]</a>
+                        <a href="[{ $oConf->getShopURL() }]index.php?shp=[{$shop->oxshops__oxid->value}]&amp;anid=[{$basketitem->getProductId()}]&amp;cl=review&amp;reviewuserhash=[{$user->getReviewUserHash($user->getId())}]" style="font-family: Arial, Helvetica, sans-serif; font-size: 12px;" target="_blank">[{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_REVIEW" }]</a>
 	                    </td>
                     [{/if}]
                 </tr>
@@ -210,7 +209,7 @@
                                 </td>
                             </tr>
                             [{ foreach from=$order->getVoucherList() item=voucher}]
-                            	[{assign var="v6c_voucherseries" value=$voucher->getSerie() }]
+                                [{ assign var="voucherseries" value=$voucher->getSerie() }]
                                 <tr valign="top">
                                     <td style="padding: 5px 20px 5px 5px;">
                                         <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
@@ -219,7 +218,7 @@
                                     </td>
                                     <td style="padding: 5px 20px 5px 5px;">
                                         <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
-                                            [{ $v6c_voucherseries->v6cGetFValue($currency) }]
+                                            [{ $voucherseries->v6cGetFValue($currency) }]
                                         </p>
                                     </td>
                                 </tr>
@@ -348,6 +347,7 @@
                                 </td>
                                 <td style="padding: 5px; border-bottom: 1px solid #ccc;" align="right">
                                     <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
+                                    	[{*--M1--*}]
                                         [{ if $basket->getVoucherDiscValue() > 0 }]-[{/if}][{ $basket->getFVoucherDiscountValue()|replace:"-":"" }]
                                     </p>
                                 </td>
@@ -599,6 +599,24 @@
         [{/if}]
     [{/block}]
 
+    [{block name="email_html_order_cust_download_link"}]
+        [{ if $oOrderFileList }]
+            <h3 style="font-weight: bold; margin: 20px 0 7px; padding: 0; line-height: 35px; font-size: 12px;font-family: Arial, Helvetica, sans-serif; text-transform: uppercase; border-bottom: 4px solid #ddd;">
+                [{ oxmultilang ident="MY_DOWNLOADS_DESC" }]
+            </h3>
+            [{foreach from=$oOrderFileList item="oOrderFile"}]
+              <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px;">
+              [{if $order->oxorder__oxpaid->value || !$oOrderFile->oxorderfiles__oxpurchasedonly->value}]
+                <a href="[{ oxgetseourl ident=$oViewConf->getSelfLink()|cat:"cl=download" params="sorderfileid="|cat:$oOrderFile->getId()}]" rel="nofollow">[{$oOrderFile->oxorderfiles__oxfilename->value}]</a> [{$oOrderFile->getFileSize()|oxfilesize}]
+              [{else}]
+                <span>[{$oOrderFile->oxorderfiles__oxfilename->value}]</span>
+                <strong>[{ oxmultilang ident="DOWNLOADS_PAYMENT_PENDING" }]</strong>
+              [{/if}]
+              </p>
+            [{/foreach}]
+        [{/if}]
+    [{/block}]
+
     [{block name="email_html_order_cust_paymentinfo"}]
         [{if $payment->oxuserpayments__oxpaymentsid->value != "oxempty"}]
             <h3 style="font-weight: bold; margin: 20px 0 7px; padding: 0; line-height: 35px; font-size: 12px;font-family: Arial, Helvetica, sans-serif; text-transform: uppercase; border-bottom: 4px solid #ddd;">
@@ -606,8 +624,6 @@
             </h3>
             <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px;">
                 <b>[{ $payment->oxpayments__oxdesc->value }] [{ if $basket->getPaymentCosts() }]([{ $basket->getFPaymentCosts() }])[{/if}]</b>
-                <br>
-                [{ $payment->oxpayments__oxlongdesc->value }]
             </p>
         [{/if}]
     [{/block}]
@@ -633,6 +649,7 @@
                         [{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_BILLINGADDRESS" }]
                     </h4>
                     <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
+                    	[{*--M2--*}]
                         [{include file="widget/address/billing_address.tpl" v6c_oOrder=$order v6c_bNoEmail=true}]
                         [{if $order->oxorder__oxbillustid->value}][{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_VATIDNOMBER" }] [{ $order->oxorder__oxbillustid->value }][{/if}]
                     </p>
@@ -643,6 +660,7 @@
                             [{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_SHIPPINGADDRESS" }]
                         </h4>
                         <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
+                        	[{*--M2--*}]
                             [{include file="widget/address/shipping_address.tpl" v6c_oOrder=$order v6c_bNoEmail=true}]
                         </p>
                     </td>
@@ -665,7 +683,7 @@
     [{block name="email_html_order_cust_paymentinfo"}]
         [{if $payment->oxuserpayments__oxpaymentsid->value == "oxidpayadvance"}]
             <h3 style="font-weight: bold; margin: 20px 0 7px; padding: 0; line-height: 35px; font-size: 12px;font-family: Arial, Helvetica, sans-serif; text-transform: uppercase; border-bottom: 4px solid #ddd;">
-                [{ oxmultilang ident="V6C_EMAIL_ORDER_CUST_HTML_PAYADVANCEINFO" }]
+                [{ oxmultilang ident="BANK_DETAILS" }]
             </h3>
             <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px;">
                 [{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_BANK" }] [{$shop->oxshops__oxbankname->value}]<br>
@@ -685,12 +703,13 @@
 
     [{block name="email_html_order_cust_tsinfo"}]
         [{if $oViewConf->showTs("ORDEREMAIL") && $oViewConf->getTsId() }]
+            [{assign var="sTSRatingImg" value="https://www.trustedshops.com/bewertung/widget/img/bewerten_"|cat:$oViewConf->getActLanguageAbbr()|cat:".gif"}]
             <h3 style="font-weight: bold; margin: 20px 0 7px; padding: 0; line-height: 35px; font-size: 12px;font-family: Arial, Helvetica, sans-serif; text-transform: uppercase; border-bottom: 4px solid #ddd;">
                 [{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_TS_RATINGS_RATEUS" }]
             </h3>
 
             <a href="[{ $oViewConf->getTsRatingUrl() }]" target="_blank" title="[{ oxmultilang ident="TS_RATINGS_URL_TITLE" }]">
-                <img src="https://www.trustedshops.com/bewertung/widget/img/bewerten_de.gif" border="0" alt="[{ oxmultilang ident="TS_RATINGS_BUTTON_ALT" }]" align="middle">
+                <img src="[{$sTSRatingImg}]" border="0" alt="[{ oxmultilang ident="TS_RATINGS_BUTTON_ALT" }]" align="middle">
             </a>
         [{/if}]
     [{/block}]

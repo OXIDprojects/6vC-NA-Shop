@@ -60,9 +60,6 @@ class v6c_naLang extends v6c_naLang_parent
      */
     public function formatCurrency( $dValue, $oActCur = null, $bNoSign = false )
     {
-        // Do not show zero values
-        if ( $dValue == 0 && $this->getConfig()->getConfigParam('v6c_bHideZeroCost') ) return '';
-
         if ( !$oActCur ) {
             $oActCur = $this->getConfig()->getActShopCurrencyObject();
         }

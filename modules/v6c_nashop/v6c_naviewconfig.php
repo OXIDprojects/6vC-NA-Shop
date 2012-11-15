@@ -43,7 +43,7 @@ class v6c_naViewConfig extends v6c_naViewConfig_parent
      *
      * @return string
      */
-    public function getPaymentLink()
+    /*public function getPaymentLink()
     {
     	if ($this->getConfig()->getConfigParam( 'v6c_blCompactChkOut' ))
     	{
@@ -59,7 +59,7 @@ class v6c_naViewConfig extends v6c_naViewConfig_parent
     	}
 
         return $sValue;
-    }
+    }*/
 
 
 	/////////////////////// EXTENSIONS ////////////////////////////
@@ -174,48 +174,8 @@ class v6c_naViewConfig extends v6c_naViewConfig_parent
     *
     * @return bool
     */
-    public function v6cIsSalutation()
-    {
-    	return !$this->getConfig()->getConfigParam( 'v6c_blNoSalutation' );
-    }
-
-    /**
-    * Variable getter
-    *
-    * @return bool
-    */
     public function v6cIsXprsChkOut()
     {
         return $this->getConfig()->getConfigParam( 'v6c_bXprsChkout' );
-    }
-
-    /**
-    * Variable getter
-    *
-    * @return bool
-    */
-    public function v6cIsOldXprsStps()
-    {
-        return $this->getConfig()->getConfigParam( 'v6c_bOldXprsStps' );
-    }
-
-    /**
-    * Variable getter
-    *
-    * @return bool
-    */
-    public function v6cIsReviews()
-    {
-        return !$this->getConfig()->getConfigParam( 'v6c_bNoReviews' );
-    }
-
-    /**
-    * Variable getter
-    *
-    * @return bool
-    */
-    public function v6cIsRatings()
-    {
-        return !$this->getConfig()->getConfigParam( 'v6c_bNoRatings' );
     }
 }

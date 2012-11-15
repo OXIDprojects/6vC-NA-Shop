@@ -2,23 +2,24 @@
 INFORMATION
 -------------------------------------------------------------------------------------------------
 
-- Unless otherwise noted, all files last updated using oxid_esales_CE 4.5.11
+- This extension applies localization to a shop (currency, address, etc.) for use in countries
+  such as USA, Canada, Australia, and New Zealand.
 - License requires a modest credit to original developer in the form of a link-back (see LICENSE file)
-- Update feature a little buggy, be sure to check for invalid entries in the modules field after an update (Master Settings>Core Settings>System>Modules)
 - Have questions AFTER reading this?  Go here: http://forum.oxid-esales.com/showthread.php?t=16197
-- v6c_basic theme based off of oxid_esales_CE 4.4.5 (not publicly available)
 
 
 -------------------------------------------------------------------------------------------------
 INSTALLATION
 -------------------------------------------------------------------------------------------------
 
-1. Copy Files
+1. Prerequisites & Compatability
 
-Copy all files to their equivalent directories in your eshop install.  If you're already using
-your own custom theme, theme changes will have to be merged manually one way or the other (ie. merge
-v6c_azure into your custom theme folder or vice-versa).  If you've made any changes to admin tpl files
-in your eshop you may also need to merge some files under out\admin\tpl\.
+- Compatible with OXID eShop 4.6.x (last verified with 4.6.5).
+- v6c_basic theme based off of oxid_esales_CE 4.4.5 (not publicly available)
+
+2. Copy Files
+
+- Copy all directories in package to root web directory.  This will include a new theme based off of azure.
 
 
 2. CONFIG.INC.PHP Changes
@@ -58,7 +59,6 @@ defined for each region and each tax is assigned a label.
 - 6vC Modules>North America Shop> Enable "Prefix currency sign to prices" option.
 - Master Settings>Core Settings>Settings>Other settings> Remove oxuser__oxstreetnr and oxaddress__oxstreetnr from the list box for "Mandatory fields in User Registration Form".
 - Master Settings>Core Settings>Settings>Other settings> Add oxuser__oxstateid and oxaddress__oxstateid to the list box for "Mandatory fields in User Registration Form".
-- Master Settings>Themes>Azure>Settings>Display> Disable display of date of birth fields.
 - Unless you want otherwise: Master Settings>Themes>Azure>Settings>Features> Uncheck "Use listmania".
 - Enable v6c_azure theme under Master Settings>Themes.
 
@@ -70,7 +70,8 @@ defined for each region and each tax is assigned a label.
 - Select domestic country (click country and make sure it's highlighted!) otherwise the default is none (Master Settings>Core Settings>Settings>Global).
 - Disable unwanted RSS feeds under Master Settings>Core Settings>Settings>Other Settings
 - Can disable tags and control # of news articles under Master Settings>Core Settings>Settings>Shop frontend
-- Can enable moderatation user reviews under Master Settings>Core Settings>System>Other Settings
+- If product reviews/ratings is not desired, deactivate under Master Settings>Core Settings>Perform.>Enhanced Performance Settings
+- Can enable moderating user reviews under Master Settings>Core Settings>System>Other Settings
 - Compare list, vouchers, gift registry, and gift wrapping features are found under Themes>[Theme]>Settings>Features
 - If changing favicon.ico, note that there are two locations: home folder and template img folder.
 
@@ -78,61 +79,43 @@ defined for each region and each tax is assigned a label.
 Below is summary of changes/fixes made to adapt the shop to North American standards.
 -------------------------------------------------------------------------------------
 
-- Hard-coding of currency sign outside of currency formating removed.  Currency sign now included into
-  currency formating function.  Extended/modified files include: oxlang.php, oxrssfeed.php, oxutils.php,
-  oxmdvariant.php, and many .tpl files.
+- Config option added that will omit all tax calculations on prices displayed in shop and apply tax only to
+  the final checkout price (v6c_naprice.php).  Enabling this option essentially enables the NA-Tax method.
+
+- Hard-coding of currency sign in templates removed.  Currency sign now included into
+  currency formating function.  Additionally, a config option is provided to change the position of the
+  currency sign from trailing (right-side) to leading (left-side).
 
 - Removed asterix character (*) from prices that acted as a note about taxes being included.
 
-- Costs determined from address & payment page only shown on order page (removed from basket page).
-  Included removal of shipping, payment, and tax costs from basket page.
+- Variable costs determined from address & payment options only shown on order page (removed from basket page).
 
-- Changed naming and layout of user addresses.
-
-- Config option added to omit all tax calculations on prices displayed in shop and apply tax only to
-  the final checkout price (v6c_naprice.php).
+- Changed layout of user addresses.
 
 - Sort state/province abbreviations in user address forms (v6c_nacountry.php)
 
 - Allow different and multiple tax values to be assigned to different states/provinces (v6c_nataxselector.php).
   Currently, requires mods to config.inc.php file.
 
-- Recalculation of completed and paid orders in the back-end is disabled for multiple reasons:
-	1. The shipping or payment method selected by the customer may not be available to the admin, making it
-	   impossible to recalculate using same customer selections or impossible to obtain same shipping/payment
-	   costs after making other changes to the order.
-	2. Recalculation was occurring inadvertently (such as when updating the tracking code) and possibly changing
-	   order totals when they should not be changed.
-	3. There is not point having the ability to change the dollar amount of a completed order is there is no
-	   mechanism to add/track multiple payments for a single order for the sake of collecting outstanding
-	   balances.
-  If you'd like to reverse the above changes, simply do not extend order_main with v6c_admin_naordermain and
-  do not include changes to order_article.tpl, order_main.tpl, order_overview.
 
 --------------------------------------------------------------------------------------------------------
 Notes to consider regarding changed functionality of the eShop.
 --------------------------------------------------------------------------------------------------------
 
-- If the NAShop config option NAtax is set to ON/enabled, taxes involving multiple values will be calculated
-  individually, as is the ideal case.  If NAtax is OFF/disabled, tax will be calculated from the cumulative
+- If the NAShop config option NA-Tax is set to ON/enabled, taxes involving multiple values will be calculated
+  individually, as is the ideal case.  If NA-Tax is OFF/disabled, tax will be calculated from the cumulative
   percentage.  Note that, due to rounding, these may result in different order totals!  This is due to the
   following difference:
-  		NAtax=ON: 	GROSS = NET + Round(NET*(TAX1/100)) + Round(NET*(TAX2/100))
-  		NAtax=OFF:	GROSS = NET + Round(NET*(TAX1+TAX2)/100)
-  Ideally, the calculation method used for NAtax=ON would always be used, but this would require some major
+  		NA-Tax=ON: 	GROSS = NET + Round(NET*(TAX1/100)) + Round(NET*(TAX2/100))
+  		NA-Tax=OFF:	GROSS = NET + Round(NET*(TAX1+TAX2)/100)
+  Ideally, the calculation method used for NA-Tax=ON would always be used, but this would require some major
   code changes.  This is due to oxvatselector::getUserVat returning a double value throughout the code while
   proper support for multiple taxes would require an array to be returned.
 
-- When prices do not include taxes (NAtax=ON), the order total will tax everything in order including
-  shipping and payment method charges.  However, if including taxes in prices is desired (NAtax=OFF),
-  auxilliary charges (shipping, payment, wrapping) will have taxes included INTO (not in addition to) their
-  existing prices by default.  That is, by default, the costs for auxiliary charges do NOT change whether
-  tax is on or off so you may want/need to adjust them manually according to the desired result.  Note,
-  however, that this default behaviour can be changed only for shipping charges with the admin setting Core
-  Settings>Settings>VAT: Enter Shipping Costs as net Price (plus VAT).
 
 --------------------------------------------------------------------------------------------------------
 TODOs
 --------------------------------------------------------------------------------------------------------
 
 - Add french characters to SEO character mapping upon install.
+- Link position of currency sign to currency type.

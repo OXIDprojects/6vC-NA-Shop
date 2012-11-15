@@ -1,5 +1,5 @@
-[{*-- 
-  * SUMMARY OF V6C MODS:
+[{*--
+  * SUMMARY OF V6C_NA MODS:
   *		Remove all occurences of currency sign: $currency->sign
   *		Remove all occurences of asterisk (*) after prices
 --*}]
@@ -22,8 +22,7 @@
 [{/if}]
 
 [{oxhasrights ident="TOBASKET"}]
-    [{if !$oDetailsProduct->isNotBuyable()}]
-        <form class="js-oxProductForm" action="[{$oViewConf->getSelfActionLink()}]" method="post">
+    <form class="js-oxProductForm" action="[{$oViewConf->getSelfActionLink()}]" method="post">
         <div>
             [{$oViewConf->getHiddenSid()}]
             [{$oViewConf->getNavFormParams()}]
@@ -32,30 +31,30 @@
             <input type="hidden" name="anid" value="[{$oDetailsProduct->oxarticles__oxnid->value}]">
             <input type="hidden" name="parentid" value="[{if !$oDetailsProduct->oxarticles__oxparentid->value}][{$oDetailsProduct->oxarticles__oxid->value}][{else}][{$oDetailsProduct->oxarticles__oxparentid->value}][{/if}]">
             <input type="hidden" name="panid" value="">
-            <input type="hidden" name="fnc" value="tobasket">
+            [{if !$oDetailsProduct->isNotBuyable()}]
+                <input type="hidden" name="fnc" value="tobasket">
+            [{/if}]
         </div>
-    [{/if}]
 [{/oxhasrights}]
 
 <div class="detailsInfo clear">
-    <meta itemprop='productID' content='sku:[{ $oDetailsProduct->oxarticles__oxartnum->value }]'>
-    <meta itemprop="url"  content="[{$oDetailsProduct->getMainLink()}]">
     [{* article picture with zoom *}]
     [{block name="details_productmain_zoom"}]
+        [{oxscript include="js/libs/cloudzoom.js" priority=10}]
         [{if $oView->showZoomPics()}]
             [{oxscript include="js/widgets/oxmodalpopup.js" priority=10 }]
             [{oxscript add="$('#zoomTrigger').oxModalPopup({target:'#zoomModal'});"}]
             <a id="zoomTrigger" rel="nofollow" href="#">Zoom</a>
-            [{oxscript include="js/libs/cloudzoom.js" priority=10}]
+            [{oxscript add="$('#zoom1').attr( 'rel', $('#zoom1').attr('data-zoomparams'));"}]
             [{oxscript add="$('.cloud-zoom, .cloud-zoom-gallery').CloudZoom();"}]
             <div class="picture">
-                <a href="[{$oPictureProduct->getMasterZoomPictureUrl(1)}]" class="cloud-zoom" id="zoom1" rel="adjustY:-2, zoomWidth:'354', fixZoomWindow:'390', trImg:'[{$oViewConf->getImageUrl('dot.png')}]', loadingText:'[{oxmultilang ident="PAGE_DETAILS_ZOOM_LOADING"}]'">
-                    <img itemprop="image" src="[{$oView->getActPicture()}]" alt="[{$oPictureProduct->oxarticles__oxtitle->value|strip_tags}] [{$oPictureProduct->oxarticles__oxvarselect->value|strip_tags}]">
+                <a href="[{$oPictureProduct->getMasterZoomPictureUrl(1)}]" class="cloud-zoom" id="zoom1" rel='' data-zoomparams="adjustY:-2, zoomWidth:'354', fixZoomWindow:'390', trImg:'[{$oViewConf->getImageUrl('dot.png')}]', loadingText:'[{oxmultilang ident="PAGE_DETAILS_ZOOM_LOADING"}]'">
+                    <img src="[{$oView->getActPicture()}]" alt="[{$oPictureProduct->oxarticles__oxtitle->value|strip_tags}] [{$oPictureProduct->oxarticles__oxvarselect->value|strip_tags}]">
                 </a>
             </div>
         [{else}]
             <div class="picture">
-                <img itemprop="image" src="[{$oView->getActPicture()}]" alt="[{$oPictureProduct->oxarticles__oxtitle->value|strip_tags}] [{$oPictureProduct->oxarticles__oxvarselect->value|strip_tags}]">
+                <img src="[{$oView->getActPicture()}]" alt="[{$oPictureProduct->oxarticles__oxtitle->value|strip_tags}] [{$oPictureProduct->oxarticles__oxvarselect->value|strip_tags}]">
             </div>
         [{/if}]
     [{/block}]
@@ -71,7 +70,7 @@
 
             [{* Product title *}]
             [{block name="details_productmain_title"}]
-                <h1 id="productTitle"><span itemprop="name">[{$oDetailsProduct->oxarticles__oxtitle->value}] [{$oDetailsProduct->oxarticles__oxvarselect->value}]</span></h1>
+                <h1 id="productTitle"><span>[{$oDetailsProduct->oxarticles__oxtitle->value}] [{$oDetailsProduct->oxarticles__oxvarselect->value}]</span></h1>
             [{/block}]
 
             [{* Actions select list: to listmania and etc. *}]
@@ -118,6 +117,9 @@
                                 <li><a id="priceAlarmLink" rel="nofollow" href="[{ $oDetailsProduct->getLink()|cat:'#itemTabs'}]">[{oxmultilang ident="DETAILS_PRICEALARM"}]</a></li>
                             [{/if}]
                         [{/oxhasrights}]
+                        <li>
+                           <span>[{mailto extra='id="questionMail"' address=$oDetailsProduct->oxarticles__oxquestionemail->value|default:$oxcmp_shop->oxshops__oxinfoemail->value subject='DETAILS_QUESTIONSSUBJECT'|oxmultilangassign|cat:" "|cat:$oDetailsProduct->oxarticles__oxartnum->value text='DETAILS_QUESTIONS'|oxmultilangassign }]</span>
+                        </li>
                     [{/block}]
                 </ul>
             [{/block}]
@@ -128,11 +130,13 @@
             [{/block}]
 
             [{* ratings *}]
+            [{ if $oView->ratingIsActive()}]
             [{block name="details_productmain_ratings"}]
                 <div class="rating clear">
                     [{include file="widget/reviews/rating.tpl" itemid="anid=`$oDetailsProduct->oxarticles__oxnid->value`" sRateUrl=$oDetailsProduct->getLink() }]
                 </div>
             [{/block}]
+            [{/if}]
         </div>
 
         [{block name="details_productmain_manufacturersicon"}]
@@ -145,7 +149,7 @@
         [{block name="details_productmain_shortdesc"}]
             [{oxhasrights ident="SHOWSHORTDESCRIPTION"}]
                 [{if $oDetailsProduct->oxarticles__oxshortdesc->value}]
-                    <div class="shortDescription description" id="productShortdesc" itemprop="description">[{$oDetailsProduct->oxarticles__oxshortdesc->value}]</div>
+                    <div class="shortDescription description" id="productShortdesc">[{$oDetailsProduct->oxarticles__oxshortdesc->value}]</div>
                 [{/if}]
             [{/oxhasrights}]
         [{/block}]
@@ -165,7 +169,7 @@
                         [{if $oList->getActiveSelection()}]
                             [{assign var="blHasActiveSelections" value=true}]
                         [{/if}]
-                        [{include file="widget/product/selectbox.tpl" oSelectionList=$oList iKey=$iKey}]
+                        [{include file="widget/product/selectbox.tpl" oSelectionList=$oList iKey=$iKey blInDetails=true}]
                     [{/foreach}]
 
                 </div>
@@ -193,6 +197,9 @@
                         [{assign var="blCanBuy" value=true}]
                     [{/if}]
                 [{/if}]
+                    [{if !$blCanBuy }]
+                        <div class="variantMessage">[{oxmultilang ident="DETAILS_CHOOSEVARIANT"}]</div>
+                    [{/if}]
 
             [{/if}]
         [{/block}]
@@ -211,7 +218,7 @@
             [{/if}]
         [{/block}]
 
-        <div class="tobasket" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+        <div class="tobasket">
 
             [{* pers params *}]
             [{block name="details_productmain_persparams"}]
@@ -224,7 +231,9 @@
 
             [{block name="details_productmain_tprice"}]
                 [{oxhasrights ident="SHOWARTICLEPRICE"}]
-                    [{if $oDetailsProduct->getFTPrice() > $oDetailsProduct->getFPrice()}]
+                    [{assign var=tprice value=$oDetailsProduct->getTPrice()}]
+                    [{assign var=price  value=$oDetailsProduct->getPrice()}]
+                    [{if $tprice && $tprice->getBruttoPrice() > $price->getBruttoPrice()}]
                         <p class="oldPrice">
                             <strong>[{oxmultilang ident="DETAILS_REDUCEDFROM"}] <del>[{$oDetailsProduct->getFTPrice()}]</del></strong>
                         </p>
@@ -246,11 +255,14 @@
                                     [{/if}]
                                 [{/if}]
 
-                                <strong><span itemprop="price">[{$fPrice}]</span> <meta itemprop="priceCurrency" content="[{ $currency->name}]"></strong>
+                                <strong >
+                                    <span>[{$fPrice}]</span>
+                                </strong>
+
                             </label>
                         [{/if}]
-                        [{oxscript include="js/widgets/oxamountpriceselect.js" priority=10 }]
                         [{if $oDetailsProduct->loadAmountPriceInfo()}]
+                            [{oxscript include="js/widgets/oxamountpriceselect.js" priority=10 }]
                             [{include file="page/details/inc/priceinfo.tpl"}]
                         [{/if}]
                     [{/oxhasrights}]
@@ -270,13 +282,13 @@
             <div class="additionalInfo clear">
                 [{block name="details_productmain_priceperunit"}]
                     [{if $oDetailsProduct->getPricePerUnit()}]
-                        <span id="productPriceUnit">[{$oDetailsProduct->getPricePerUnit()}]/[{$oDetailsProduct->oxarticles__oxunitname->value}]</span>
+                        <span id="productPriceUnit">[{$oDetailsProduct->getPricePerUnit()}]/[{$oDetailsProduct->getUnitName()}]</span>
                     [{/if}]
                 [{/block}]
 
                 [{block name="details_productmain_stockstatus"}]
                     [{if $oDetailsProduct->getStockStatus() == -1}]
-                        <span class="stockFlag notOnStock" itemprop="availability" href="http://schema.org/OutOfStock">
+                        <span class="stockFlag notOnStock">
                             [{if $oDetailsProduct->oxarticles__oxnostocktext->value}]
                                 [{$oDetailsProduct->oxarticles__oxnostocktext->value}]
                             [{elseif $oViewConf->getStockOffDefaultMessage()}]
@@ -287,9 +299,11 @@
                             [{/if}]
                         </span>
                     [{elseif $oDetailsProduct->getStockStatus() == 1}]
-                        <span class="stockFlag lowStock" itemprop="availability" href="http://schema.org/InStock">[{oxmultilang ident="DETAILS_LOWSTOCK"}]</span>
+                        <span class="stockFlag lowStock">
+                            [{oxmultilang ident="DETAILS_LOWSTOCK"}]
+                        </span>
                     [{elseif $oDetailsProduct->getStockStatus() == 0}]
-                        <span class="stockFlag" itemprop="availability" href="http://schema.org/InStock">
+                        <span class="stockFlag">
                             [{if $oDetailsProduct->oxarticles__oxstocktext->value}]
                                 [{$oDetailsProduct->oxarticles__oxstocktext->value}]
                             [{elseif $oViewConf->getStockOnDefaultMessage()}]
@@ -317,21 +331,23 @@
 
             [{block name="details_productmain_social"}]
                 <div class="social">
-                    [{if $oView->isActive('FacebookConfirm') && !$oView->isFbWidgetWisible() }]
-                        <div class="socialButton" id="productFbShare">
-                            [{include file="widget/facebook/enable.tpl" source="widget/facebook/share.tpl" ident="#productFbShare"}]
-                            [{include file=widget/facebook/like.tpl assign="fbfile"}]
-                            [{assign var='fbfile' value=$fbfile|strip|escape:'url'}]
-                            [{oxscript add="oxFacebook.buttons['#productFbLike']={html:'`$fbfile`',script:''};"}]
-                        </div>
-                        <div class="socialButton" id="productFbLike"></div>
-                    [{else}]
-                        <div class="socialButton" id="productFbShare">
-                            [{include file="widget/facebook/enable.tpl" source="widget/facebook/share.tpl" ident="#productFbShare"}]
-                        </div>
-                        <div class="socialButton" id="productFbLike">
-                            [{include file="widget/facebook/enable.tpl" source="widget/facebook/like.tpl" ident="#productFbLike"}]
-                        </div>
+                    [{if ( $oView->isActive('FbShare') || $oView->isActive('FbLike') && $oViewConf->getFbAppId() ) }]
+                        [{ if $oView->isActive('FacebookConfirm') && !$oView->isFbWidgetVisible()  }]
+                            <div class="socialButton" id="productFbShare">
+                                [{include file="widget/facebook/enable.tpl" source="widget/facebook/share.tpl" ident="#productFbShare"}]
+                                [{include file=widget/facebook/like.tpl assign="fbfile"}]
+                                [{assign var='fbfile' value=$fbfile|strip|escape:'url'}]
+                                [{oxscript add="oxFacebook.buttons['#productFbLike']={html:'`$fbfile`',script:''};"}]
+                            </div>
+                            <div class="socialButton" id="productFbLike"></div>
+                        [{else}]
+                            <div class="socialButton" id="productFbShare">
+                                [{include file="widget/facebook/enable.tpl" source="widget/facebook/share.tpl" ident="#productFbShare"}]
+                            </div>
+                            <div class="socialButton" id="productFbLike">
+                                [{include file="widget/facebook/enable.tpl" source="widget/facebook/like.tpl" ident="#productFbLike"}]
+                            </div>
+                        [{/if}]
                     [{/if}]
                 </div>
             [{/block}]
@@ -340,9 +356,8 @@
 </div>
 
 [{oxhasrights ident="TOBASKET"}]
-    [{if !$oDetailsProduct->isNotBuyable()}]
-        </form>
-    [{/if}]
+    </form>
+
 [{/oxhasrights}]
 [{block name="details_productmain_morepics"}]
     [{include file="page/details/inc/morepics.tpl"}]

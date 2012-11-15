@@ -1,0 +1,675 @@
+<?php
+/**
+*    The 6vCommerce NA-Shop Module Support Package is free software: you can redistribute it and/or modify
+*    it under the terms of the GNU General Public License as published by
+*    the Free Software Foundation, either version 3 of the License, or
+*    (at your option) any later version.
+*
+*    The 6vCommerce NA-Shop Module Support Package is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU General Public License for more details.
+*
+*    You should have received a copy of the GNU General Public License
+*    along with the 6vCommerce NA-Shop Module Support Package.  If not, see <http://www.gnu.org/licenses/>.
+*
+* @link      http://www.6vcommerce.ca
+* @copyright (C) 6vCommerce
+*/
+
+class v6c_naPdfArticleSummary extends v6c_naPdfArticleSummary_parent
+{
+    /////////////////////// OVERRIDES ////////////////////////////
+
+    /**
+    * MODS noted in code.
+    *
+    * @param int &$iStartPos text start position
+    *
+    * @return none
+    */
+    protected function _setDeliveryInfo( &$iStartPos )
+    {
+        $sAddString = '';
+        $oLang = oxLang::getInstance();
+        $oConfig = oxConfig::getInstance();
+        // BEGIN MOD
+        if ( !$this->_oData->v6cIsTaxGlobal() && $oConfig->getConfigParam( 'blCalcVATForDelivery' ) ) {
+        // END MOD
+            // delivery netto
+            $sDelCostNetto = $oLang->formatCurrency( $this->_oData->getOrderDeliveryPrice()->getNettoPrice(), $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_SHIPCOST' ).' '.$this->_oData->translate('ORDER_OVERVIEW_PDF_NETTO' ) );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sDelCostNetto ), $iStartPos, $sDelCostNetto );
+            $iStartPos += 4;
+
+            // delivery VAT
+            $sDelCostVAT = $oLang->formatCurrency( $this->_oData->getOrderDeliveryPrice()->getVATValue(), $this->_oData->getCurrency()).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_ZZGLVAT' ).$this->_oData->oxorder__oxdelvat->value.$this->_oData->translate( 'ORDER_OVERVIEW_PDF_PERCENTSUM' ) );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sDelCostVAT ), $iStartPos, $sDelCostVAT );
+            //$iStartPos += 4;
+
+            $sAddString = ' '.$this->_oData->translate( 'ORDER_OVERVIEW_PDF_BRUTTO' );
+        } else {
+            // if canceled order, reset value
+            if ( $this->_oData->oxorder__oxstorno->value ) {
+                $this->_oData->oxorder__oxdelcost->setValue(0);
+            }
+
+            $sDelCost = $oLang->formatCurrency( $this->_oData->oxorder__oxdelcost->value, $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_SHIPCOST' ).$sAddString );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sDelCost ), $iStartPos, $sDelCost );
+        }
+    }
+
+    /**
+    * MODS noted in code.
+    *
+    * @param int &$iStartPos text start position
+    *
+    * @return none
+    */
+    protected function _setWrappingInfo( &$iStartPos )
+    {
+        if ( $this->_oData->oxorder__oxwrapcost->value ) {
+            $sAddString = '';
+            $oLang = oxLang::getInstance();
+
+            //displaying wrapping VAT info
+            // BEGIN MOD
+            if ( !$this->_oData->v6cIsTaxGlobal() && $this->_oData->oxorder__oxwrapvat->value ) {
+            // END MOD
+
+                // wrapping netto
+                $iStartPos += 5;
+                $sWrapCostNetto = $oLang->formatCurrency( $this->_oData->getOrderWrappingPrice()->getNettoPrice(), $this->_oData->getCurrency()).' '.$this->_oData->getCurrency()->name;
+                $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_WRAPPING' ).' '.$this->_oData->translate( 'ORDER_OVERVIEW_PDF_NETTO' ) );
+                $this->text( 195 - $this->_oPdf->getStringWidth( $sWrapCostNetto ), $iStartPos, $sWrapCostNetto );
+
+                //wrapping VAT
+                $iStartPos += 4;
+                $sWrapCostVAT = $oLang->formatCurrency( $this->_oData->getOrderWrappingPrice()->getVATValue(), $this->_oData->getCurrency()).' '.$this->_oData->getCurrency()->name;
+                $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_ZZGLVAT' ).$this->_oData->oxorder__oxwrapvat->value.$this->_oData->translate( 'ORDER_OVERVIEW_PDF_PERCENTSUM' ) );
+                $this->text( 195 - $this->_oPdf->getStringWidth( $sWrapCostVAT ), $iStartPos, $sWrapCostVAT );
+
+                $sAddString = ' '.$this->_oData->translate( 'ORDER_OVERVIEW_PDF_BRUTTO' );
+
+                // drawing line separator
+                $iStartPos += 4;
+                $this->line(45, $iStartPos - 3, 195, $iStartPos - 3);
+            }
+            $iStartPos += 4;
+
+            // wrapping cost
+            $sWrapCost = $oLang->formatCurrency( $this->_oData->oxorder__oxwrapcost->value, $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_WRAPPING' ).$sAddString );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sWrapCost ), $iStartPos, $sWrapCost );
+            $iStartPos++;
+        }
+    }
+
+    /**
+    * MODS noted in code.
+    *
+    * @param int &$iStartPos text start position
+    *
+    * @return none
+    */
+    protected function _setPaymentInfo( &$iStartPos )
+    {
+        $oLang = oxLang::getInstance();
+        // BEGIN MOD
+        if ( !$this->_oData->v6cIsTaxGlobal() && $this->_oData->oxorder__oxpayvat->value ) {
+        // END MOD
+
+            // payment netto
+            $iStartPos += 4;
+            $sPayCostNetto = $oLang->formatCurrency( $this->_oData->getOrderPaymentPrice()->getNettoPrice(), $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_PAYMENTIMPACT' ).' '.$this->_oData->translate( 'ORDER_OVERVIEW_PDF_NETTO' ) );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sPayCostNetto ), $iStartPos, $sPayCostNetto );
+
+            // payment VAT
+            $iStartPos += 4;
+            $sPayCostVAT = $oLang->formatCurrency( $this->_oData->getOrderPaymentPrice()->getVATValue(), $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_ZZGLVAT' ).$this->_oData->oxorder__oxpayvat->value.$this->_oData->translate( 'ORDER_OVERVIEW_PDF_PERCENTSUM' ) );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sPayCostVAT ), $iStartPos, $sPayCostVAT );
+
+        }
+
+        // if canceled order, reset value
+        if ( $this->_oData->oxorder__oxstorno->value ) {
+            $this->_oData->oxorder__oxpaycost->setValue(0);
+        }
+
+        // payment costs
+        if ( $this->_oData->oxorder__oxpaycost->value ) {
+            $iStartPos += 4;
+            $sPayCost = $oLang->formatCurrency( $this->_oData->oxorder__oxpaycost->value, $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_PAYMENTIMPACT' ) );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sPayCost ), $iStartPos, $sPayCost );
+        }
+
+        $iStartPos++;
+    }
+
+    /**
+    * MODS noted in code.
+    *
+    * @param int &$iStartPos text start position
+    *
+    * @return none
+    */
+    protected function _setTsProtection( &$iStartPos )
+    {
+        $oLang   = oxLang::getInstance();
+        $oConfig = oxConfig::getInstance();
+        // BEGIN MOD
+        if ( !$this->_oData->v6cIsTaxGlobal() && $oConfig->getConfigParam( 'blCalcVATForPayCharge' ) ) {
+        // END MOD
+
+            // payment netto
+            $iStartPos += 4;
+            $sPayCostNetto = $oLang->formatCurrency( $this->_oData->getOrderTsProtectionPrice()->getNettoPrice(), $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_TSPROTECTION' ).' '.$this->_oData->translate( 'ORDER_OVERVIEW_PDF_NETTO' ) );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sPayCostNetto ), $iStartPos, $sPayCostNetto );
+
+            // payment VAT
+            $iStartPos += 4;
+            $sPayCostVAT = $oLang->formatCurrency( $this->_oData->getOrderTsProtectionPrice()->getVATValue(), $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_ZZGLVAT' ).$oConfig->getConfigParam( 'dDefaultVAT' ).$this->_oData->translate( 'ORDER_OVERVIEW_PDF_PERCENTSUM' ) );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sPayCostVAT ), $iStartPos, $sPayCostVAT );
+
+        }
+
+        // payment costs
+        if ( $this->_oData->oxorder__oxtsprotectcosts->value ) {
+            $iStartPos += 4;
+            $sPayCost = $oLang->formatCurrency( $this->_oData->oxorder__oxtsprotectcosts->value, $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_TSPROTECTION' ) );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sPayCost ), $iStartPos, $sPayCost );
+        }
+
+        $iStartPos++;
+    }
+
+    /**
+     * MODS noted in code
+     *
+     * @param int &$iStartPos text start position
+     *
+     * @return none
+     */
+    protected function _setGrandTotalPriceInfo( &$iStartPos )
+    {
+        $oLang = oxLang::getInstance();
+
+        // total netto price (A. very unprecise, impossible to count because of many factors)
+        $this->font( $this->getFont(), 'B', 10 );
+        // BEGIN MOD
+        if ( !$this->_oData->v6cIsTaxGlobal() && ($this->_oData->oxorder__oxdelvat->value || $this->_oData->oxorder__oxwrapvat->value || $this->_oData->oxorder__oxpayvat->value) ) {
+        // END MOD
+
+            // collecting total net price
+            $sTotalNetSum = $oLang->formatCurrency( $this->_oData->getOrderNetSum(), $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            $this->text( 45, $iStartPos, $this->_oData->translate( 'ORDER_OVERVIEW_PDF_ALLSUM_NET' ) );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sTotalNetSum ), $iStartPos, $sTotalNetSum );
+            $iStartPos += 4;
+        }
+
+        // total order sum
+        $sTotalOrderSum = $oLang->formatCurrency( $this->_oData->oxorder__oxtotalordersum->value, $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+        // BEGIN MOD
+        $this->text( 45, $iStartPos, $this->_oData->translate( 'GENERAL_SUMTOTAL' ) );
+        // END MOD
+        $this->text( 195 - $this->_oPdf->getStringWidth( $sTotalOrderSum ), $iStartPos, $sTotalOrderSum );
+        $iStartPos += 2;
+    }
+
+    /**
+    * MODS noted in code.
+    *
+    * @param int $iStartPos text start position
+    *
+    * @return int
+    */
+    public function generate( $iStartPos )
+    {
+
+        $this->font( $this->getFont(), '', 10 );
+        $siteH = $iStartPos;
+
+        // BEGIN MOD
+        if ($this->_oData->v6cIsTaxGlobal())
+        {
+            $this->_setTotalCostsOfArticles($siteH);
+        } else {
+            // #1147 discount for vat must be displayed
+            if ( !$this->_oData->oxorder__oxdiscount->value ) {
+                $this->_setTotalCostsWithoutDiscount( $siteH );
+            } else {
+                $this->_setTotalCostsWithDiscount( $siteH );
+            }
+        }
+        // END MOD
+
+        $siteH += 12;
+
+        // voucher info
+        $this->_setVoucherInfo( $siteH );
+
+        // additional line separator
+        if ( $this->_oData->oxorder__oxdiscount->value || $this->_oData->oxorder__oxvoucherdiscount->value ) {
+            $this->line( 45, $siteH - 3, 195, $siteH - 3 );
+        }
+
+        // delivery info
+        $this->_setDeliveryInfo( $siteH );
+
+        // wrapping info
+        $this->_setWrappingInfo( $siteH );
+
+        // payment info
+        $this->_setPaymentInfo( $siteH );
+
+        // TS protection info
+        $this->_setTsProtection( $siteH );
+
+        // BEGIN MOD (new code)
+        // Tax summary
+        if ($this->_oData->v6cIsTaxGlobal())
+        {
+            $this->_setGlobalTax($siteH);
+        }
+        // END MOD
+
+        // separating line
+        $this->line( 15, $siteH, 195, $siteH );
+        $siteH += 4;
+
+        // total order sum
+        $this->_setGrandTotalPriceInfo( $siteH );
+
+        // separating line
+        $this->line( 15, $siteH, 195, $siteH );
+        $siteH += 4;
+
+        // payment method
+        $this->_setPaymentMethodInfo( $siteH );
+
+        // pay until ...
+        // BEGIN MOD
+        //$this->_setPayUntilInfo( $siteH );
+        // END MOD
+
+        return $siteH - $iStartPos;
+    }
+
+
+    /////////////////////// EXTENSIONS ////////////////////////////
+
+    /////////////////////// ADDITTIONS ////////////////////////////
+
+    /**
+    * Sets total costs of cart articles
+    *
+    * @param int &$iStartPos text start position
+    *
+    * @return none
+    */
+    protected function _setTotalCostsOfArticles( &$iStartPos )
+    {
+        $oLang = oxLang::getInstance();
+
+        // products netto price
+        $iStartPos++;
+        $this->line( 15, $iStartPos + 1, 195, $iStartPos + 1 );
+        $sNetSum = $oLang->formatCurrency( $this->_oData->oxorder__oxtotalnetsum->value, $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+        $this->text( 45, $iStartPos + 4, $this->_oData->translate( 'V6C_GENERAL_CARTCOST' ) );
+        $this->text( 195 - $this->_oPdf->getStringWidth( $sNetSum ), $iStartPos + 4, $sNetSum );
+    }
+
+    /**
+     * Sets total costs of global tax
+     *
+     * @param int &$iStartPos text start position
+     *
+     * @return none
+     */
+    protected function _setGlobalTax( &$iStartPos )
+    {
+        $oLang = oxLang::getInstance();
+
+        $this->line( 45, $iStartPos, 195, $iStartPos );
+        // Save position for order total
+        $iStorePos = $iStartPos + 4;
+        $iStartPos += 8;
+
+        // #345 - product VAT info
+        $iCtr = 0;
+        $aVats = $this->_oData->getVats();
+        $dOrderTotal = $this->_oData->oxorder__oxtotalordersum->value;
+        foreach ( $aVats as $iVat => $dVatPrice ) {
+            $iStartPos += 4 * $iCtr;
+            $dOrderTotal -= $dVatPrice;
+            $sVATSum = $oLang->formatCurrency( $dVatPrice, $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+            if (count($aVats) == 1) $sText = $this->_oData->translate( 'GENERAL_IVAT' );
+            elseif ($iCtr == 0) $sText = $this->_oData->translate( 'GENERAL_IVAT' ).' '.$this->_oData->translate( 'V6C_GENERAL_FEDERAL' );
+            elseif ($iCtr == 1) $sText = $this->_oData->translate( 'GENERAL_IVAT' ).' '.$this->_oData->translate( 'V6C_GENERAL_STATE' );
+            $this->text( 45, $iStartPos + 2, $sText );
+            $this->text( 195 - $this->_oPdf->getStringWidth( $sVATSum ), $iStartPos + 2, $sVATSum );
+            $iCtr++;
+        }
+
+        // set order total now that taxes are known
+        $sNetSum = $oLang->formatCurrency( $dOrderTotal, $this->_oData->getCurrency() ).' '.$this->_oData->getCurrency()->name;
+        $this->text( 45, $iStorePos, $this->_oData->translate( 'V6C_GENERAL_ORDERCOST' ) );
+        $this->text( 195 - $this->_oPdf->getStringWidth( $sNetSum ), $iStorePos, $sNetSum );
+
+        $iStartPos += 4;
+    }
+}
+
+class v6c_naPdfOrder extends v6c_naPdfOrder_parent
+{
+    /////////////////////// OVERRIDES ////////////////////////////
+
+    /**
+    * MODS noted in code
+    *
+    * @param object $oPdf pdf document object
+    *
+    * @return null
+    */
+    public function pdfFooter( $oPdf )
+    {
+
+        $oShop = $this->_getActShop();
+
+        $oPdf->line( 15, 272, 195, 272 );
+
+        $oPdfBlock = new PdfBlock();
+        /* column 1 - company name, shop owner info, shop address */
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 7 );
+        $oPdf->text( 15, 275, strip_tags( $oShop->oxshops__oxcompany->getRawValue() ) );
+        // BEGIN MOD
+        //$oPdf->text( 15, 278, strip_tags( $oShop->oxshops__oxfname->getRawValue() ).' '. strip_tags( $oShop->oxshops__oxlname->getRawValue() ) );
+        //$oPdf->text( 15, 281, strip_tags( $oShop->oxshops__oxstreet->getRawValue() ) );
+        //$oPdf->text( 15, 284, strip_tags( $oShop->oxshops__oxzip->value ).' '. strip_tags( $oShop->oxshops__oxcity->getRawValue() ) );
+        //$oPdf->text( 15, 287, strip_tags( $oShop->oxshops__oxcountry->getRawValue() ) );
+        $oPdf->text( 15, 278, strip_tags( $oShop->oxshops__oxstreet->getRawValue() ) );
+        $oPdf->text( 15, 281, strip_tags( $oShop->oxshops__oxzip->value ).' '. strip_tags( $oShop->oxshops__oxcity->getRawValue() ) );
+        $oPdf->text( 15, 284, strip_tags( $oShop->oxshops__oxcountry->getRawValue() ) );
+        $oPdf->text( 15, 287, '' );
+
+        /* column 2 - phone, fax, url, email address */
+        $oPdf->text( 90, 275, '    '.$this->translate( 'ORDER_OVERVIEW_PDF_PHONE' ).strip_tags( $oShop->oxshops__oxtelefon->value ) );
+        //$oPdf->text( 85, 278, $this->translate( 'ORDER_OVERVIEW_PDF_FAX' ).strip_tags( $oShop->oxshops__oxtelefax->value ) );
+        //$oPdf->text( 85, 281, strip_tags( $oShop->oxshops__oxurl->value ) );
+        //$oPdf->text( 85, 284, strip_tags( $oShop->oxshops__oxorderemail->value ) );
+        $oPdf->text( 90, 278, ' '.strip_tags( $oShop->oxshops__oxurl->value ) );
+        $oPdf->text( 90, 281, strip_tags( $oShop->oxshops__oxorderemail->value ) );
+        $oPdf->text( 90, 284, '' );
+
+        /* column 3 - bank information */
+        //$oPdf->text( 150, 275, strip_tags( $oShop->oxshops__oxbankname->getRawValue() ) );
+        //$oPdf->text( 150, 278, $this->translate( 'ORDER_OVERVIEW_PDF_ACCOUNTNR' ).strip_tags( $oShop->oxshops__oxbanknumber->value ) );
+        //$oPdf->text( 150, 281, $this->translate( 'ORDER_OVERVIEW_PDF_BANKCODE' ).strip_tags( $oShop->oxshops__oxbankcode->value ) );
+        //$oPdf->text( 150, 284, $this->translate( 'ORDER_OVERVIEW_PDF_TAXIDNR' ).' '.strip_tags( $oShop->oxshops__oxvatnumber->value ) );
+        $sTxt = $this->translate( 'ORDER_OVERVIEW_PDF_TAXIDNR' ).' '.strip_tags( $oShop->oxshops__oxvatnumber->value );
+        $oPdf->text( 195 - $oPdf->getStringWidth( $sTxt ), 275, $sTxt );
+        $sTxt = $this->translate( 'ORDER_OVERVIEW_PDF_ACCOUNTNR' ).strip_tags( $oShop->oxshops__oxbanknumber->value );
+        $oPdf->text( 195 - $oPdf->getStringWidth( $sTxt ), 278, $sTxt );
+        $oPdf->text( 195, 281, '' );
+        $oPdf->text( 195, 284, '' );
+        $oPdf->text( 195, 287, '' );
+        // END MOD
+    }
+
+    /**
+    * MODS noted in code
+    *
+    * @param object $oPdf pdf document object
+    *
+    * @return null
+    */
+    protected function _setBillingAddressToPdf( $oPdf )
+    {
+        $oLang = oxLang::getInstance();
+        // BEGIN MOD
+        //$sSal = $this->oxorder__oxbillsal->value;
+        //try {
+        //    $sSal = $oLang->translateString($this->oxorder__oxbillsal->value, $this->_iSelectedLang);
+        //} catch (Exception $e) {
+        //}
+        $oPdfBlock = new PdfBlock();
+        $oPdf->setFont( $oPdfBlock->getFont(), 'B', 10 );
+        //$oPdf->text( 15, 59, $sSal);
+        $iCol = 59;
+        $oPdf->text( 15, $iCol, ''); $iCol += 4;
+        $oPdf->text( 15, $iCol, $this->oxorder__oxbillfname->getRawValue().' '.$this->oxorder__oxbilllname->getRawValue() ); $iCol += 4;
+        if (!empty($this->oxorder__oxbillcompany->value)) $oPdf->text( 15, $iCol, $this->oxorder__oxbillcompany->getRawValue() ); $iCol += 4;
+        $oPdf->text( 15, $iCol, $this->oxorder__oxbillstreet->getRawValue().' '.$this->oxorder__oxbillstreetnr->value ); $iCol += 4;
+        $oPdf->text( 15, $iCol, $this->oxorder__oxbillcity->getRawValue().', '.$this->oxorder__oxbillstateid->value.' '.$this->oxorder__oxbillzip->value ); $iCol += 4;
+        $oPdf->text( 15, $iCol, $this->oxorder__oxbillcountry->getRawValue() );
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 10 );
+        // END MOD
+    }
+
+    /**
+    * MODS noted in code
+    *
+    * @param object $oPdf        pdf document object
+    * @param int    &$iStartPos  text start position from top
+    * @param bool   $blShowPrice show articles prices / VAT info or not
+    *
+    * @return null
+    */
+    protected function _setOrderArticlesToPdf( $oPdf, &$iStartPos, $blShowPrice = true )
+    {
+        if (!$this->_oArticles) {
+            $this->_oArticles = $this->getOrderArticles(true);
+        }
+
+        $oCurr = $this->getCurrency();
+        $oPdfBlock = new PdfBlock();
+        // product list
+        foreach ( $this->_oArticles as $key => $oOrderArt ) {
+
+            // starting a new page ...
+            if ( $iStartPos > 243 ) {
+                $this->pdffooter( $oPdf );
+                $iStartPos = $this->pdfheaderplus( $oPdf );
+                $oPdf->setFont( $oPdfBlock->getFont(), '', 10 );
+            } else {
+                $iStartPos = $iStartPos + 4;
+            }
+
+            // sold amount
+            $oPdf->text( 20 - $oPdf->getStringWidth( $oOrderArt->oxorderarticles__oxamount->value ), $iStartPos, $oOrderArt->oxorderarticles__oxamount->value );
+
+            // product number
+            $oPdf->setFont( $oPdfBlock->getFont(), '', 8 );
+            $oPdf->text( 28, $iStartPos, $oOrderArt->oxorderarticles__oxartnum->value );
+
+            // product title
+            $oPdf->setFont( $oPdfBlock->getFont(), '', 10 );
+            $oPdf->text( 45, $iStartPos, substr( strip_tags( $this->_replaceExtendedChars( $oOrderArt->oxorderarticles__oxtitle->getRawValue(), true ) ), 0, 58 ) );
+
+            if ( $blShowPrice ) {
+                $oLang = oxLang::getInstance();
+
+                // calculating product VAT info
+                if ( !isset( $this->_aVATs[$oOrderArt->oxorderarticles__oxvat->value] ) ) {
+                    $this->_aVATs[$oOrderArt->oxorderarticles__oxvat->value] = 0;
+                }
+                // #M1434: VAT recalculation in admin (pdf) is wrong
+                if ( $oOrderArt->oxorderarticles__oxamount->value > 0 ) {
+                    $this->_aVATs[$oOrderArt->oxorderarticles__oxvat->value] += ( $oOrderArt->oxorderarticles__oxvatprice->value * $oCurr->rate );
+                }
+
+                // product VAT percent
+                // BEGIN MOD
+                //$oPdf->text( 150 - $oPdf->getStringWidth( $oOrderArt->oxorderarticles__oxvat->value ), $iStartPos, $oOrderArt->oxorderarticles__oxvat->value );
+                // END MOD
+
+                // product price
+                $sText = $oLang->formatCurrency( $oOrderArt->oxorderarticles__oxbprice->value, $this->_oCur ).' '.$this->_oCur->name;
+                // BEGIN MOD
+                //$oPdf->text( 173 - $oPdf->getStringWidth( $sText ), $iStartPos, $sText );
+                $oPdf->text( 160 - $oPdf->getStringWidth( $sText ), $iStartPos, $sText );
+                // END MOD
+
+                // total product price
+                $sText = $oLang->formatCurrency( $oOrderArt->oxorderarticles__oxbrutprice->value, $this->_oCur ).' '.$this->_oCur->name;
+                $oPdf->text( 195 - $oPdf->getStringWidth( $sText ), $iStartPos, $sText );
+
+            }
+
+            // additional variant info
+            if ( $oOrderArt->oxorderarticles__oxselvariant->value ) {
+                $iStartPos = $iStartPos + 4;
+                $oPdf->text( 45, $iStartPos, substr( $oOrderArt->oxorderarticles__oxselvariant->value, 0, 58 ) );
+            }
+
+        }
+    }
+
+    /**
+    * MODS noted in code
+    *
+    * @param object $oPdf pdf document object
+    *
+    * @return null
+    */
+    public function exportStandart( $oPdf )
+    {
+        // preparing order curency info
+        $myConfig = $this->getConfig();
+        $oPdfBlock = new PdfBlock();
+
+        $this->_oCur = $myConfig->getCurrencyObject( $this->oxorder__oxcurrency->value );
+        if ( !$this->_oCur ) {
+            $this->_oCur = $myConfig->getActShopCurrencyObject();
+        }
+
+        // loading active shop
+        $oShop = $this->_getActShop();
+
+        // shop information
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 6 );
+        $oPdf->text( 15, 55, $oShop->oxshops__oxname->getRawValue().' - '.$oShop->oxshops__oxstreet->getRawValue().' - '.$oShop->oxshops__oxzip->value.' - '.$oShop->oxshops__oxcity->getRawValue() );
+
+        // billing address
+        $this->_setBillingAddressToPdf( $oPdf );
+
+        // delivery address
+        if ( $this->oxorder__oxdelsal->value ) {
+            $this->_setDeliveryAddressToPdf( $oPdf );
+        }
+
+        // loading user
+        $oUser = oxNew( 'oxuser' );
+        $oUser->load( $this->oxorder__oxuserid->value );
+
+        // user info
+        $sText = $this->translate( 'ORDER_OVERVIEW_PDF_FILLONPAYMENT' );
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 5 );
+        $oPdf->text( 195 - $oPdf->getStringWidth( $sText ), 55, $sText );
+
+        // customer number
+        $sCustNr = $this->translate( 'ORDER_OVERVIEW_PDF_CUSTNR').' '.$oUser->oxuser__oxcustnr->value;
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 7 );
+        $oPdf->text( 195 - $oPdf->getStringWidth( $sCustNr ), 59, $sCustNr );
+
+        // setting position if delivery address is used
+        if ( $this->oxorder__oxdelsal->value ) {
+            $iTop = 115;
+        } else {
+            $iTop = 91;
+        }
+
+        // BEGIN MOD
+        // shop city
+        //$sText = $oShop->oxshops__oxcity->getRawValue().', '.date( 'd.m.Y' );
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 10 );
+        //$oPdf->text( 195 - $oPdf->getStringWidth( $sText ), $iTop + 8, $sText );
+
+        // shop GST#
+        $sText = $this->translate( 'ORDER_OVERVIEW_PDF_TAXIDNR' ).' '.$oShop->oxshops__oxvatnumber->value;
+        $oPdf->text( 195 - $oPdf->getStringWidth( $sText ), $iTop + 8, $sText );
+
+        // shop PST#
+        $sText = $this->translate( 'ORDER_OVERVIEW_PDF_ACCOUNTNR' ).$oShop->oxshops__oxbanknumber->value;
+        $oPdf->text( 195 - $oPdf->getStringWidth( $sText ), $iTop + 12, $sText );
+        $iTop += 8;
+
+        // shop VAT number
+//         if ( $oShop->oxshops__oxvatnumber->value ) {
+//             $sText = $this->translate( 'ORDER_OVERVIEW_PDF_TAXIDNR' ).' '.$oShop->oxshops__oxvatnumber->value;
+//             $oPdf->text( 195 - $oPdf->getStringWidth( $sText ), $iTop + 12, $sText );
+//             $iTop += 8;
+//         } else {
+//             $iTop += 4;
+//         }
+        // END MOD
+
+        // invoice number
+        $sText = $this->translate( 'ORDER_OVERVIEW_PDF_COUNTNR' ).' '.$this->oxorder__oxbillnr->value;
+        $oPdf->text( 195 - $oPdf->getStringWidth( $sText ), $iTop + 8, $sText );
+
+        // marking if order is canceled
+        if ( $this->oxorder__oxstorno->value == 1 ) {
+            $this->oxorder__oxordernr->setValue( $this->oxorder__oxordernr->getRawValue() . '   '.$this->translate( 'ORDER_OVERVIEW_PDF_STORNO' ), oxField::T_RAW );
+        }
+
+        // order number
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 12 );
+        $oPdf->text( 15, $iTop, $this->translate( 'ORDER_OVERVIEW_PDF_PURCHASENR' ).' '.$this->oxorder__oxordernr->value );
+
+        // order date
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 10 );
+        $aOrderDate = explode( ' ', $this->oxorder__oxorderdate->value );
+        $sOrderDate = oxUtilsDate::getInstance()->formatDBDate( $aOrderDate[0]);
+        $oPdf->text( 15, $iTop + 8, $this->translate( 'ORDER_OVERVIEW_PDF_ORDERSFROM' ).$sOrderDate.$this->translate( 'ORDER_OVERVIEW_PDF_ORDERSAT' ).$oShop->oxshops__oxurl->value );
+        $iTop += 16;
+
+        // product info header
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 8 );
+        $oPdf->text( 15, $iTop, $this->translate( 'ORDER_OVERVIEW_PDF_AMOUNT' ) );
+        $oPdf->text( 30, $iTop, $this->translate( 'ORDER_OVERVIEW_PDF_ARTID' ) );
+        $oPdf->text( 45, $iTop, $this->translate( 'ORDER_OVERVIEW_PDF_DESC' ) );
+        // BEGIN MOD
+        //$oPdf->text( 145, $iTop, $this->translate( 'ORDER_OVERVIEW_PDF_VAT' ) );
+        $oPdf->text( 145, $iTop, $this->translate( 'ORDER_OVERVIEW_PDF_UNITPRICE' ) );
+        // END MOD
+        $sText = $this->translate( 'ORDER_OVERVIEW_PDF_ALLPRICE' );
+        $oPdf->text( 195 - $oPdf->getStringWidth( $sText ), $iTop, $sText );
+
+        // separator line
+        $iTop += 2;
+        $oPdf->line( 15, $iTop, 195, $iTop );
+
+        // #345
+        $siteH = $iTop;
+        $oPdf->setFont( $oPdfBlock->getFont(), '', 10 );
+
+        // order articles
+        $this->_setOrderArticlesToPdf( $oPdf, $siteH, true );
+
+        // generating pdf file
+        $oArtSumm = new PdfArticleSummary( $this, $oPdf );
+        $iHeight = $oArtSumm->generate( $siteH );
+        if ( $siteH + $iHeight > 258 ) {
+            $this->pdfFooter( $oPdf );
+            $iTop = $this->pdfHeader( $oPdf );
+            $oArtSumm->ajustHeight( $iTop - $siteH );
+            $siteH = $iTop;
+        }
+
+        $oArtSumm->run( $oPdf );
+        $siteH += $iHeight + 8;
+
+        $oPdf->text( 15, $siteH, $this->translate( 'ORDER_OVERVIEW_PDF_GREETINGS' ) );
+    }
+
+    /////////////////////// EXTENSIONS ////////////////////////////
+}

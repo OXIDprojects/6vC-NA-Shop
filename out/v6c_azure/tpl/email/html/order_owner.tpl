@@ -1,19 +1,18 @@
 [{*--
-  * SUMMARY OF V6C MODS:
+  * SUMMARY OF V6C_NA MODS:
   *		Remove all occurences of currency sign: $currency->sign
   *		Repeat mods done to basketcontents.tpl for order page price summary with the following differences:
   *			- Leave greeting card after article list
   *			- Adjust borders here since they are not handled by css
-  *			- Fix issue with use of 'modvoucher' not resolving to anything (obsolete maybe?).  Using actual table names instead.
   *			- Corrected misuse of getFVoucherDiscountValue in condition requiring unformatted value.
   *			- Remove hardcoded colons after some cost labels.
   *		Replace local address layout with address widgets.
-  *		BUG #0003351: Correction to column header (quantity and unit price reversed)
   *		Move user VAT/Tax ID to after address info
 --*}]
 
 [{ assign var="shop"      value=$oEmailView->getShop() }]
 [{ assign var="oViewConf" value=$oEmailView->getViewConfig() }]
+[{ assign var="oConf"     value=$oViewConf->getConfig() }]
 [{ assign var="currency"  value=$oEmailView->getCurrency() }]
 [{ assign var="user"      value=$oEmailView->getUser() }]
 [{ assign var="basket"    value=$order->getBasket() }]
@@ -61,7 +60,7 @@
                         [{assign var="basketproduct" value=$basketitemlist.$basketindex }]
                         <tr valign="top">
                             <td style="padding: 5px; border-bottom: 4px solid #ddd;">
-                                <img src="[{$basketproduct->getThumbnailUrl() }]" border="0" hspace="0" vspace="0" alt="[{ $basketproduct->oxarticles__oxtitle->value|strip_tags }]" align="texttop">
+                                <img src="[{$basketproduct->getThumbnailUrl(false) }]" border="0" hspace="0" vspace="0" alt="[{$basketitem->getTitle()|strip_tags}]" align="texttop">
                                 [{if $oViewConf->getShowGiftWrapping() }]
                                 <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0; padding: 10px 0;">
                                     [{assign var="oWrapping" value=$basketitem->getWrapping() }]
@@ -71,7 +70,7 @@
                             </td>
                             <td style="padding: 5px; border-bottom: 4px solid #ddd;">
                                 <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0; padding: 10px 0;">
-                                    <b>[{ $basketproduct->oxarticles__oxtitle->value }][{ if $basketproduct->oxarticles__oxvarselect->value}], [{ $basketproduct->oxarticles__oxvarselect->value}][{/if}]</b>
+                                    <b>[{$basketitem->getTitle()}]</b>
                                     [{ if $basketitem->getChosenSelList() }],
                                     [{foreach from=$basketitem->getChosenSelList() item=oList}]
                                     [{ $oList->name }] [{ $oList->value }]&nbsp;
@@ -165,7 +164,7 @@
                                     </tr>
                                     [{/if}]
                                     [{ foreach from=$order->getVoucherList() item=voucher}]
-		                            	[{assign var="v6c_voucherseries" value=$voucher->getSerie() }]
+                                    [{ assign var="voucherseries" value=$voucher->getSerie() }]
 		                                <tr valign="top">
 		                                    <td style="padding: 5px 20px 5px 5px;">
 		                                        <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
@@ -174,7 +173,7 @@
 		                                    </td>
 		                                    <td style="padding: 5px 20px 5px 5px;">
 		                                        <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; margin: 0;">
-		                                            [{ $v6c_voucherseries->v6cGetFValue($currency) }]
+		                                            [{ $voucherseries->v6cGetFValue($currency) }]
 		                                        </p>
 		                                    </td>
 		                                </tr>
@@ -548,9 +547,7 @@
                         [{ oxmultilang ident="EMAIL_ORDER_OWNER_HTML_PAYMENTINFO" }]
                     </h3>
                     <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px;">
-                        <b>[{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_PAYMENTMETHOD" }] [{ $payment->oxpayments__oxdesc->value }] [{ if $basket->getPaymentCosts() }]([{ $basket->getFPaymentCosts() }])[{/if}]</b>
-                        <br>
-                        [{ $payment->oxpayments__oxlongdesc->value }]
+                        <b>[{ oxmultilang ident="EMAIL_ORDER_CUST_HTML_PAYMENTMETHOD" }] [{ $payment->oxpayments__oxdesc->value }] [{ if $basket->getPaymentCosts() }]([{ $basket->getFPaymentCosts() }] [{ $currency->sign}])[{/if}]</b>
                         <br><br>
                         [{ oxmultilang ident="EMAIL_ORDER_OWNER_HTML_PAYMENTINFOOFF" }]
                     </p>

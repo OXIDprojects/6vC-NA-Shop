@@ -1,12 +1,13 @@
-[{*-- 
-  * SUMMARY OF V6C MODS:
+[{*--
+  * SUMMARY OF V6C_NA MODS:
   *		Extra line break after email
   *		Salutation optional
   *		Address layout changed to NA standards
   *		Add support to omit email
-  *		Add support to use order data  
+  *		Add support to use order data
   *		Add support for plain-text, including removal of all unnecessary white-space.
 --*}]
+[{assign var="v6c_issal" value=false}][{block name="v6c_plblk_issalutation"}][{assign var="v6c_issal" value=true}][{/block}]
 [{if $v6c_bNoEmail}][{assign var="v6c_bShowEmail" value=false}][{else}][{assign var="v6c_bShowEmail" value=true}][{/if}]
 [{if $v6c_oOrder}]
 	[{if $v6c_bPlainTxt}][{assign var="v6c_sCompany" value=$v6c_oOrder->oxorder__oxdelcompany->getRawValue()}][{else}][{assign var="v6c_sCompany" value=$v6c_oOrder->oxorder__oxdelcompany->value}][{/if}]
@@ -41,7 +42,7 @@
 [{/if}]
 [{if $v6c_bIsAdr }][{* do not add indents w/i this if statement *}]
 [{if $v6c_sCompany }][{ $v6c_sCompany }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
-[{if $v6c_sSal || $v6c_sFirst || $v6c_sLast}][{if $oViewConf->v6cIsSalutation() }][{ $v6c_sSal|oxmultilangsal}] [{/if}][{ $v6c_sFirst }] [{ $v6c_sLast }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
+[{if $v6c_sSal || $v6c_sFirst || $v6c_sLast}][{if $v6c_issal }][{ $v6c_sSal|oxmultilangsal}] [{/if}][{ $v6c_sFirst }] [{ $v6c_sLast }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
 [{if $v6c_sStreet || $v6c_sStNr}][{ $v6c_sStreet }] [{ $v6c_sStNr }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
 [{if $v6c_sAddInfo }][{ $v6c_sAddInfo }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
 [{if $v6c_sStateId || $v6c_sZip || $v6c_sCity}][{ $v6c_sCity }], [{$v6c_sStateId}] [{ $v6c_sZip }][{if !$v6c_bPlainTxt}]<br>[{/if}][{/if}]
